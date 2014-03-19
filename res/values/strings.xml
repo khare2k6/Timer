@@ -11,5 +11,6 @@
     <string name="btnPause">Pause</string>
     <string name="btnresume">Resume</string>
      <string name="resetMedia">Reset Media</string>
+     <string name="appId">0752e8f883d7419c8926e2f64f1c226c</string>
     <string name="menuExit">Exit</string>
 </resources>

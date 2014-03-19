@@ -10,7 +10,11 @@
             <instrumentation android:name="android.test.InstrumentationTestRunner"
             android:functionalTest="true"
     android:targetPackage="com.ak.reikitimer"/>
-
+  
+            <!--  for in mobi -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> 
+    <uses-permission android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION" />
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_clock2"
@@ -31,6 +35,22 @@
         <service android:name="com.ak.service.ControllerService">
             
         </service>
+          <!--  for in mobi -->
+        <activity
+    android:name="com.inmobi.androidsdk.IMBrowserActivity"
+    android:configChanges="keyboardHidden|orientation|keyboard|smallestScreenSize|screenSize"
+    android:hardwareAccelerated="true" />
+        
+        <receiver
+            android:name="com.inmobi.commons.analytics.androidsdk.IMAdTrackerReceiver"
+            android:enabled="true"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="com.android.vending.INSTALL_REFERRER" />
+            </intent-filter>
+        </receiver>
+        <service android:enabled="true" 
+            android:name="com.inmobi.commons.internal.ActivityRecognitionManager" />
     </application>
 
 </manifest>

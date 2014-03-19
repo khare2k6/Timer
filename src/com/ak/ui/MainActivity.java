@@ -3,6 +3,7 @@ package com.ak.ui;
 
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import android.app.Activity;
@@ -26,11 +27,16 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -39,6 +45,11 @@ import com.ak.reikitimer.R;
 import com.ak.remotecontroller.ITimerActionsListener;
 import com.ak.service.ControllerService;
 import com.ak.timer.CDTimer.State;
+import com.inmobi.commons.InMobi;
+import com.inmobi.commons.InMobi.LOG_LEVEL;
+import com.inmobi.monetization.IMBanner;
+import com.inmobi.monetization.IMBannerListener;
+import com.inmobi.monetization.IMErrorCode;
 
 public class MainActivity extends Activity implements ITimerActionsListener,OnItemSelectedListener,OnClickListener {
 	private ControllerService mService;
@@ -46,6 +57,7 @@ public class MainActivity extends Activity implements ITimerActionsListener,OnIt
 	private static final int MEDIA_PICKER_ID = 0;
 	private final float VOLUME_TOO_LOW = (float) 0.75;
 	private static final long MINIMUM_TIME_PERID_FOR_TIMER = 3000;
+	private final String APP_ID_INMOBI ="0752e8f883d7419c8926e2f64f1c226c";
 	private Intent mServiceIntent ;
 	private Button mBtnStart,mBtnStop,mBtnPause,mBtnResume;
 	private Spinner mSpinnerMinutes,mSpinnerSeconds;
@@ -59,6 +71,9 @@ public class MainActivity extends Activity implements ITimerActionsListener,OnIt
 	private State mState;
 	private AudioManager mAudioManager;
 	private Toast mToast;
+	private LinearLayout mBannerLayout;
+	private IMBanner mBanner;
+	RelativeLayout mParentLayout;
 
 	private ServiceConnection mServiceConnection = new ServiceConnection() {
 		
@@ -133,6 +148,15 @@ public class MainActivity extends Activity implements ITimerActionsListener,OnIt
 		mSpinnerSeconds.setOnItemSelectedListener(this);
 		mPreference = getSharedPreferences(ControllerService.SHARED_PREF,0);
 		mAudioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
+		mBannerLayout = (LinearLayout)findViewById(R.id.bannerLayout);
+		mBanner = (IMBanner) findViewById(R.id.banner);
+		mParentLayout = (RelativeLayout)findViewById(R.id.parentLayout);
+		
+		mMaxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+		mCurrentVolume = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+	
+		if(mCurrentVolume/(float)mMaxVolume < VOLUME_TOO_LOW)
+			showToast("Better increase volume a little bit.");
 	}
 
 	@Override
@@ -193,11 +217,48 @@ public class MainActivity extends Activity implements ITimerActionsListener,OnIt
 		mBtnResume.setOnClickListener(this);
 		mBtnPause.setOnClickListener(this);
 		mBtnStop.setOnClickListener(this);
-		mMaxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-		mCurrentVolume = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-	
-		if(mCurrentVolume/(float)mMaxVolume < VOLUME_TOO_LOW)
-			showToast("Better increase volume a little bit.");
+
+		mBanner.setIMBannerListener(new IMBannerListener() {
+			@Override
+			public void onShowBannerScreen(IMBanner arg0) {
+				Log.d(TAG,"banner onShowBannerScreen");
+			}
+			@Override
+			public void onLeaveApplication(IMBanner arg0) {
+				Log.d(TAG,"banner onLeaveApplication");
+			}
+			@Override
+			public void onDismissBannerScreen(IMBanner arg0) {
+				Log.d(TAG,"banner onDismissBannerScreen");
+			}
+			@Override
+			public void onBannerRequestFailed(IMBanner banner, IMErrorCode errorCode) {
+				Log.d(TAG,"banner onBannerRequestFailed");
+				/*FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(
+						FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+				layoutParams.setMargins(0, 0, 0, 80);
+				
+				mParentLayout.setLayoutParams(layoutParams);
+				mBannerLayout.setVisibility(View.VISIBLE);	*/		
+			}
+			@Override
+			public void onBannerRequestSucceeded(IMBanner arg0) {
+				Log.d(TAG,"banner onBannerRequestSucceeded");
+				FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(
+						FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
+				layoutParams.setMargins(0, 0, 0, 80);
+				mParentLayout.setLayoutParams(layoutParams);
+				mBannerLayout.setVisibility(View.VISIBLE);
+			}
+
+			@Override
+			public void onBannerInteraction(IMBanner arg0, Map<String, String> arg1) {
+				Log.d(TAG,"banner onBannerInteraction");
+			}
+		});
+		InMobi.initialize(this, APP_ID_INMOBI);
+		mBanner.loadBanner();
+		InMobi.setLogLevel(LOG_LEVEL.DEBUG);
 	}
 
 	@Override
