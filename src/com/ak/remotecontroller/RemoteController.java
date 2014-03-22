@@ -3,14 +3,16 @@ package com.ak.remotecontroller;
 import android.content.Context;
 import android.net.Uri;
 
-import com.ak.timer.CDTimer;
 import com.ak.timer.ITimer;
+import com.ak.timer.TimerStateMachine;
 
 public class RemoteController implements IController{
 
 	private ITimer mTimer;
-	public RemoteController(){
-		mTimer = new CDTimer();
+	private Context mContext;
+	public RemoteController(Context context){
+		mContext = context;
+		mTimer = new TimerStateMachine(mContext);
 	}
 
 	@Override
@@ -35,8 +37,8 @@ public class RemoteController implements IController{
 	}
 
 	@Override
-	public void setMediaSource(Context context, Uri resId) {
-		mTimer.setMediaSource(context, resId);
+	public void setMediaSource(Uri resId) {
+		mTimer.setMediaSource(resId);
 	}
 
 	@Override

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
+import android.media.AudioManager;
+import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.net.Uri;
@@ -13,36 +15,73 @@ public class Buzzer implements IBuzzer,OnCompletionListener{
 
 	private List<IPlaybackListener> mListener;
 	private MediaPlayer mPlayer;
+	private AudioManager mAudioManager;
+	private Context mContext;
+	private OnAudioFocusChangeListener mAfChangeListener;
+	private String TAG = Buzzer.class.getSimpleName();
 
-	public Buzzer(){
+	public Buzzer(Context context){
 		mListener = new ArrayList<IPlaybackListener>();
+		mContext = context;
 	}
 	
 	@Override
 	public void playSound() {
-		if(mPlayer != null)
-			mPlayer.start();
+		if (mPlayer != null) {
+			int result = mAudioManager.requestAudioFocus(mAfChangeListener,
+					AudioManager.STREAM_MUSIC|AudioManager.STREAM_RING|AudioManager.STREAM_VOICE_CALL,
+					AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK);
+			if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+				mPlayer.start();
+			} else {
+				Log.d(TAG, "result = " + result + " didnt got audio focus!");
+				onPlaybackComplete();
+			}
+		}
 	}
 
 	@Override
 	public void onPlaybackComplete() {
+		mAudioManager.abandonAudioFocus(mAfChangeListener);
 		for(IPlaybackListener listener:mListener)
 			listener.onPlaybackFinish();
 	}
 
+	private void setupAudioFocusListener(){
+		mAudioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
+		mAfChangeListener = new OnAudioFocusChangeListener() {
+			
+			@Override
+			public void onAudioFocusChange(int focusChange) {
+				
+				switch(focusChange){
+				case AudioManager.AUDIOFOCUS_LOSS:
+				case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+					Log.d(TAG ,"result = "+focusChange+" AUDIOFOCUS_LOSS permanent!");
+					if(isPlaybackRunning()){
+						stopSound();
+						onPlaybackComplete();
+					}
+					break;
+				}
+			}
+		};
+	}
+	
 	@Override
 	public boolean isPlaybackRunning() {
 		return mPlayer.isPlaying();
 	}
 
 	@Override
-	public void setMediaSource(Context context,Uri resId) {
+	public void setMediaSource(Uri resId) {
 		if(mPlayer != null)
 			mPlayer.release();
-		Log.d("Buzzer","setMediaSource:"+resId);
-		mPlayer = MediaPlayer.create(context, resId);
-		Log.d("Buzzer","setMediaSource mPlayer:"+mPlayer);
+		Log.d(TAG,"setMediaSource:"+resId);
+		mPlayer = MediaPlayer.create(mContext, resId);
+		Log.d(TAG,"setMediaSource mPlayer:"+mPlayer);
 		mPlayer.setOnCompletionListener(this);
+		setupAudioFocusListener();
 	}
 	
 	@Override
@@ -57,8 +96,9 @@ public class Buzzer implements IBuzzer,OnCompletionListener{
 
 	@Override
 	public void stopSound() {
-	mPlayer.pause();
-	mPlayer.seekTo(0);
+		mPlayer.pause();
+		mPlayer.seekTo(0);
+		mAudioManager.abandonAudioFocus(mAfChangeListener);
 	}
 
 	@Override

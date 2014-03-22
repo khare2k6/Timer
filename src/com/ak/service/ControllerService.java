@@ -4,7 +4,6 @@ package com.ak.service;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -16,7 +15,7 @@ import com.ak.reikitimer.R;
 import com.ak.remotecontroller.IController;
 import com.ak.remotecontroller.ITimerActionsListener;
 import com.ak.remotecontroller.RemoteController;
-import com.ak.timer.CDTimer.State;
+import com.ak.timer.TimerStateMachine.State;
 import com.ak.ui.MainActivity;
 
 public class ControllerService extends Service implements ITimerActionsListener{
@@ -37,7 +36,7 @@ public class ControllerService extends Service implements ITimerActionsListener{
 	public void onCreate() {
 		super.onCreate();
 		Log.d(TAG,"onCreate");
-		mController = new RemoteController();	
+		mController = new RemoteController(this);	
 		foregroundNotification = new Notification.Builder(ControllerService.this)
 		.setContentTitle("Timer Running")
 		.setContentText("Repeatative timer is running")
@@ -49,7 +48,7 @@ public class ControllerService extends Service implements ITimerActionsListener{
 		mController.registerListener(this);
 		mPreference = getSharedPreferences(SHARED_PREF, 0);
 		//Initial setting media URI
-		mController.setMediaSource(this, getMediaUri());
+		mController.setMediaSource(getMediaUri());
 		mController.setRestTimer(mPreference.getInt(REST_PERIOD_KEY ,DEFUALT_REST_TIMER_PERIOD)*1000);
 	}
 
@@ -60,8 +59,8 @@ public class ControllerService extends Service implements ITimerActionsListener{
 		return new LocalBinder();
 	}
 
-	public void setMediaSource(Context context,Uri resId){
-		mController.setMediaSource(context, resId);
+	public void setMediaSource(Uri resId){
+		mController.setMediaSource(resId);
 	}
 	
 	public boolean isTimerRunning(){
@@ -98,7 +97,7 @@ public class ControllerService extends Service implements ITimerActionsListener{
 		mController.registerListener(listener);
 	}
 	public void setMediaSourceChanged(){
-		mController.setMediaSource(this, getMediaUri());
+		mController.setMediaSource(getMediaUri());
 	}
 	
 	@Override
@@ -147,13 +146,13 @@ public class ControllerService extends Service implements ITimerActionsListener{
 		case REST_PERIOD_STATE:
 			Log.d(TAG,"setting to rest media");
 			mPlayRestMedia = true;
-			mController.setMediaSource(this, getMediaUri());
+			mController.setMediaSource(getMediaUri());
 			break;
 		case STARTED:
 			if(mPlayRestMedia){
 				mPlayRestMedia = false;
 				Log.d(TAG,"resetting to bell sound");
-				mController.setMediaSource(this, getMediaUri());
+				mController.setMediaSource(getMediaUri());
 			}
 			break;
 		default:

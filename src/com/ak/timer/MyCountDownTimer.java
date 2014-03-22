@@ -2,6 +2,9 @@ package com.ak.timer;
 
 import android.os.CountDownTimer;
 
+/*
+ * Not using now
+ */
 public class MyCountDownTimer extends CountDownTimer{
 
 	private ICountDownListener listener;

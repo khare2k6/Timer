@@ -27,14 +27,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
@@ -44,7 +42,7 @@ import android.widget.Toast;
 import com.ak.reikitimer.R;
 import com.ak.remotecontroller.ITimerActionsListener;
 import com.ak.service.ControllerService;
-import com.ak.timer.CDTimer.State;
+import com.ak.timer.TimerStateMachine.State;
 import com.inmobi.commons.InMobi;
 import com.inmobi.commons.InMobi.LOG_LEVEL;
 import com.inmobi.monetization.IMBanner;
@@ -57,7 +55,7 @@ public class MainActivity extends Activity implements ITimerActionsListener,OnIt
 	private static final int MEDIA_PICKER_ID = 0;
 	private final float VOLUME_TOO_LOW = (float) 0.75;
 	private static final long MINIMUM_TIME_PERID_FOR_TIMER = 3000;
-	private final String APP_ID_INMOBI ="0752e8f883d7419c8926e2f64f1c226c";
+	private final String APP_ID_INMOBI ="1a8949bdf2fb4ef68f2fad667e701824";
 	private Intent mServiceIntent ;
 	private Button mBtnStart,mBtnStop,mBtnPause,mBtnResume;
 	private Spinner mSpinnerMinutes,mSpinnerSeconds;
@@ -100,7 +98,7 @@ public class MainActivity extends Activity implements ITimerActionsListener,OnIt
 	 * @param uri
 	 */
 	public void setMediaSource(Uri uri){
-		mService.setMediaSource(MainActivity.this, uri);
+		mService.setMediaSource(uri);
 	}
 	
 	/**

@@ -1,6 +1,5 @@
 package com.ak.remotecontroller;
 
-import android.content.Context;
 import android.net.Uri;
 
 public interface IController {
@@ -13,7 +12,7 @@ public interface IController {
 	public boolean isTimerRunning();
 	public boolean isRestTimerRunning();
 	public long getTime();
-	public void setMediaSource(Context context,Uri resId);
+	public void setMediaSource(Uri resId);
 	public void registerListener(ITimerActionsListener listener);
 	public void setRestTimer(long millis);
 }
